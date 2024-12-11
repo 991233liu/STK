@@ -1,0 +1,44 @@
+﻿// 系统接口
+import web.rest.jsonLiteClient;
+import web.json;
+
+//创建 HTTP 客户端
+var http = web.rest.jsonLiteClient()
+//设置默认添加到所有请求的 HTTP 头
+http.addHeaders = { ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0" }
+
+namespace api{
+	getRData = function(q){
+		import fsys.time;
+		var fileTime = fsys.time().now();
+		var stamp = fileTime.stamp(true);
+		var jsonData, errMsg, errCode = http.get("https://qt.gtimg.cn/?q=" + q + "&_=" + stamp)
+		if(jsonData) {
+			//import console;
+			//console.log(jsonData.tostring)
+			//console.log(web.json.stringify(jsonData))
+			return jsonData
+		} else {
+			// 出错了
+			//import console;
+			//console.dumpJson(errMsg);
+			//console.dumpJson(errCode);
+			return null
+		}
+		//return http.get("https://qt.gtimg.cn/?q=sz000652,sh600115&_=1733726254254")
+	},
+	getCodeData = function(q){
+		var jsonData, errMsg, errCode = http.get("https://proxy.finance.qq.com/cgi/cgi-bin/smartbox/search?stockFlag=1&fundFlag=1&query=" + q)
+		if(jsonData)
+			return jsonData
+		else {
+			// 出错了
+			//import console;
+			//console.dumpJson(errMsg);
+			//console.dumpJson(errCode);
+			return null
+		}
+		// return http.get("https://proxy.finance.qq.com/cgi/cgi-bin/smartbox/search?stockFlag=1&fundFlag=1&query=sz002347")
+	}
+	
+}

@@ -1,0 +1,207 @@
+import win.ui;
+import win.ui.menu;
+import win.util.tray;
+import api;
+//import console;
+import web.json;
+
+var frmToolWindow = win.form( exmode="toolwindow" )
+/*DSG{{*/
+mainForm = win.form(text="STK";right=198;bottom=300;bgcolor=16777215;border="thin";exmode="none";max=false;mode="popup";parent=frmToolWindow;topmost=1)
+mainForm.add(
+button={cls="button";text="Button";left=18;top=179;right=158;bottom=225;bgcolor=255;border=1;z=1};
+listview={cls="listview";left=1;top=0;right=199;bottom=173;asel=false;bgcolor=16777215;font=LOGFONT(h=-13;name='微软雅黑';weight=900);gridLines=1;msel=false;z=2}
+)
+/*}}*/
+
+mainForm.onClose = function(hwnd,message,wParam,lParam){
+    frmToolWindow.close()
+}
+
+//mainForm.listview.insertColumn("代码",-1,,0/*_LVCFMT_LEFT*/)
+mainForm.listview.insertColumn("简称",70,,2/*_LVCFMT_CENTER*/)
+mainForm.listview.insertColumn("最新价",68,,2/*_LVCFMT_CENTER*/)
+mainForm.listview.insertColumn("涨跌幅",60,,2/*_LVCFMT_CENTER*/)
+//第一列居中
+c=mainForm.listview.getColumn(,1)
+c.fmt=0x2/*_LVCFMT_CENTER*/
+mainForm.listview.setColumn(c,1)
+
+//自绘
+mainForm.listview.onnotify = function(id,code,ptr){
+	if( code == 0xFFFFFFF4/*_NM_CUSTOMDRAW*/ ){
+		var lvcd = mainForm.listview.getNotifyCustomDraw(code,ptr);
+		//console.log(lvcd.nmcd.dwItemSpec+"==="+lvcd.iSubItem)
+		if( lvcd.nmcd.dwDrawStage == 0x10001/*_CDDS_ITEMPREPAINT*/)
+			return 0x20/*_CDRF_NOTIFYSUBITEMDRAW*/
+		elseif( lvcd.nmcd.dwDrawStage == 1/*_CDDS_PREPAINT*/ ){
+			return 0x20/*_CDRF_NOTIFYITEMDRAW*/;
+		}
+		else{ 
+			//注意这里 iSubItem 的索引自0开始( 其他函数通常自1开始 )
+			var itemObject = mainForm.listview.getItem(lvcd.nmcd.dwItemSpec + 1, 4)
+			var textClr = gdi.RGB(255,0,0) 
+			if(itemObject) {
+				if(string.startWith(itemObject.text, "-", true)) 
+					textClr = gdi.RGB(0,128,0)
+				elseif(string.startWith(itemObject.text, "0.00%", true))
+					textClr = gdi.RGB(0,0,0)
+			}
+			lvcd.clrText = lvcd.iSubItem > 1 ? textClr : gdi.RGB(0,0,0)
+			//lvcd.uAlign = lvcd.iSubItem > 1 ? 1 : 2
+			lvcd.clrTextBk = gdi.RGB(255,255,255)
+			lvcd.update()
+			//console.log(lvcd.nmcd.lItemlParam)
+			return 0/*_CDRF_DODEFAULT*/
+		}
+	}
+}
+
+var q = "sh000001,sz000652,sh600115,sh600337"
+mainForm.listview.enableDoubleBuffering();
+
+mainForm.getData = function(q){
+	var rData = api.getRData(q)
+	var result = {}
+	if (rData) {
+		var str = web.json.stringify(rData)
+		var data = web.json.parse(str)
+		var keys = string.split(q, ",")
+		for(i=1; table.len(keys); 1){
+			str = data["v_"+keys[i]]
+			var strs = string.split(str, "~")
+  			var map = {}
+			map.name = strs[2]
+			map.code = strs[3]
+			map.jc = strs[4]
+			map.z = strs[5]
+			map.jk = strs[6]
+			map.jg = strs[34]
+			map.jd = strs[35]
+			map.f1 = strs[32]
+			map.f2 = strs[33]
+			result[keys[i]] = map
+		}
+	}
+	return result 
+}
+
+mainForm.refreshWin = function(mainForm, q){
+	var result = mainForm.getData(q)
+	var items = {};
+	var keys = string.split(q, ",")
+	for(i=1; table.len(keys); 1){
+		table.push(items, {result[keys[i]].name,result[keys[i]].jc,result[keys[i]].f2 + "%"})
+	}
+	//替换数据，重用旧的列表项原地更新数据，避免闪烁。
+	mainForm.listview.replaceItems(items);
+}
+
+mainForm.startThread = function(mainForm, q){
+	try {
+    	thread.invoke(mainForm.refreshWin, mainForm, q)
+        thread.invoke(
+        	function(mainForm, q){
+        	    sleep(5000); 
+        		mainForm.startThread(mainForm, q)
+			}, mainForm, q
+		)
+    } catch(e){}
+}
+
+mainForm.button.oncommand = function(id,event){
+	mainForm.refreshWin(mainForm, q)
+}
+
+mainForm.wndproc = function(hwnd,message,wparam,lparam){
+    select(message) {//判断消息类型
+        case  0x10/*_WM_CLOSE*/{
+            fadeHide();
+        };
+        case( 0x400+9981/*_WM_TRAYMESSAGE*/ ) { //托盘图标消息
+               
+            if( lparam = 0x205/*_WM_RBUTTONUP*/ ){
+                    import mouse;
+                    x,y = mouse.getPos();
+                    
+                    //弹出托盘菜单以前，一定要前置主窗口中，不然不点击菜单不会消失
+                    win.setForeground(mainForm.hwnd)
+                    mainForm.popmenu.popup( x,y,true )
+            }
+                    
+             if(lparam = 0x203/*_WM_LBUTTONDBLCLK)*/){  //鼠标双击
+                mainForm.show(true);
+                mainForm.popmenu.setString(1,"隐藏");
+            }
+
+
+        }
+        case( 0x112/*_WM_SYSCOMMAND*/ ){ //系统命令消息
+            if( wparam == 0xF020/*_SC_MINIMIZE*/ ){ //用户点击了最小化按钮
+            	stat = win.isVisible(mainForm.hwnd);
+                if(stat){
+                	mainForm.show(false);
+                	mainForm.popmenu.setString(1,"打开主窗口");   
+                }else{
+                    mainForm.show(true);
+                    mainForm.popmenu.setString(1,"隐藏主窗口");
+                }
+                mainForm.show(false); //隐藏窗口
+                mainForm.popmenu.setString(1,"显示")
+                return true;//阻击默认消息传递，取消最小化过程
+              }
+        }
+     }
+        
+        //无返回值则继续调用默认回调函数
+}//endproc
+
+fadeHide = function(){
+    for(i=17;1;-1){
+        mainForm.transparent( i * 15);
+        x,y,cx,cy = mainForm.getPos();
+        mainForm.setPos(x-1,y-1,cx+2,cy+2);
+        win.delay(5);
+    };  
+    win.quitMessage();
+}
+
+mainForm.popmenu = win.ui.popmenu(mainForm);//创建弹出菜单
+
+mainForm.popmenu.add("隐藏",function(id){
+    //在下面输入菜单响应代码
+    stat = win.isVisible(mainForm.hwnd);
+    if(stat){
+        mainForm.show(false);
+        mainForm.popmenu.setString(1,"显示")   
+    }else{
+        mainForm.show(true);
+        mainForm.popmenu.setString(1,"隐藏")
+    }
+});
+
+mainForm.isTransparent = false
+//mainForm.transparent(100,16777215);
+//mainForm.transparent(true);
+mainForm.popmenu.add("窗口透明",function(id){
+    if(mainForm.isTransparent){
+        mainForm.transparent(false);
+        mainForm.isTransparent = false
+        mainForm.popmenu.setString(2,"窗口透明")   
+    }else{
+        mainForm.transparent(100,16777215);
+        mainForm.isTransparent = true
+        mainForm.popmenu.setString(2,"取消窗口透明")
+    }
+});
+
+mainForm.popmenu.add();//分隔线
+mainForm.popmenu.add('退出',function(id){ mainForm.close() })
+
+tray = win.util.tray(mainForm) //创建托盘图标
+tray.message = 0x400+9981/*_WM_TRAYMESSAGE*/
+tray.tip = "托盘提示" //设置鼠标提示
+
+mainForm.show();
+mainForm.startThread(mainForm, q)
+return win.loopMessage();
