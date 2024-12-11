@@ -1,4 +1,5 @@
 import win.ui;
+import win.ui.simpleWindow2;
 import win.ui.menu;
 import win.util.tray;
 import api;
@@ -7,12 +8,27 @@ import web.json;
 
 var frmToolWindow = win.form( exmode="toolwindow" )
 /*DSG{{*/
-mainForm = win.form(text="STK";right=198;bottom=300;bgcolor=16777215;border="thin";exmode="none";max=false;mode="popup";parent=frmToolWindow;topmost=1)
+mainForm = win.form(text="STK";right=198;bottom=300;bgcolor=16777215;border="none";exmode="none";max=false;mode="popup";parent=frmToolWindow;title=false;topmost=1)
 mainForm.add(
-button={cls="button";text="Button";left=18;top=179;right=158;bottom=225;bgcolor=255;border=1;z=1};
-listview={cls="listview";left=1;top=0;right=199;bottom=173;asel=false;bgcolor=16777215;font=LOGFONT(h=-13;name='微软雅黑';weight=900);gridLines=1;msel=false;z=2}
+bk={cls="bk";text="  STK";left=0;top=0;right=199;bottom=28;ah=1;align="left";bgcolor=12632256;dl=1;dr=1;dt=1;font=LOGFONT(h=-13;name='微软雅黑';weight=700);forecolor=12632256;z=2};
+button={cls="button";text="Button";left=18;top=215;right=158;bottom=261;bgcolor=255;border=1;z=1};
+listview={cls="listview";left=1;top=30;right=199;bottom=205;asel=false;bgcolor=16777215;font=LOGFONT(h=-13;name='微软雅黑';weight=900);gridLines=1;msel=false;z=3}
 )
 /*}}*/
+
+/*
+标准库提供了以下的类可以直接在无边框窗口上创建虚拟的标题栏以及可拖动边框:
+
+win.ui.simpleWindow 实现最普通的标题栏。
+win.ui.simpleWindow2 实现的标题栏没有最大化按钮。
+win.ui.simpleWindow3 标题栏使用分层窗口实现，并使用 orphanWindow 悬浮在父窗口上面。
+*/
+win.ui.simpleWindow2(mainForm);//如果 mainForm 的最大化按钮设为隐藏(false)，则最大化按钮以及可拖动边框不会出现。
+
+//下面的代码实现用鼠标左键按住窗口时 —— 可拖动改变窗口位置
+mainForm.onMouseDown  = function(wParam,lParam){
+	mainForm.hitCaption()
+}
 
 mainForm.onClose = function(hwnd,message,wParam,lParam){
     frmToolWindow.close()
@@ -58,10 +74,18 @@ mainForm.listview.onnotify = function(id,code,ptr){
 }
 
 var q = "sh000001,sz000652,sh600115,sh600337"
+mainForm.rData = {}
 mainForm.listview.enableDoubleBuffering();
 
-mainForm.getData = function(q){
-	var rData = api.getRData(q)
+mainForm.getData = function(mainForm, q){
+	var thrdHandle = thread.create( 
+		function(mainForm, q){
+			mainForm.rData = api.getRData(q)
+		}, mainForm, q
+	)
+	thread.waitOne(thrdHandle,5000)
+	raw.closehandle(thrdHandle)
+	var rData = mainForm.rData
 	var result = {}
 	if (rData) {
 		var str = web.json.stringify(rData)
