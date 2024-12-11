@@ -13,6 +13,9 @@ STK小智慧，股票盯盘、看盘软件，小工具，非常的小，方便�
 <a href="docs/p2.png"><img src="docs/p2.png" width="80%"></a>  
 <br> 
 
-#### 其他
+#### 下载  
+https://gitee.com/liulufeng/stk/releases
+
+#### 其他  
 1.  有需求、新建议的留言，我看到后处理。
 2.  有定制需求的私信我，免费！嘿嘿。
