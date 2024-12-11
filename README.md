@@ -9,7 +9,7 @@ STK小智慧，股票盯盘、看盘软件，小工具，非常的小，方便�
 <a href="docs/p1.png"><img src="docs/p1.png" width="80%"></a>  
 <br> 
 
-2.  **透明效果截图**
+2.  **透明效果截图**  
 <a href="docs/p2.png"><img src="docs/p2.png" width="80%"></a>  
 <br> 
 
