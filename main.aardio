@@ -2,9 +2,19 @@ import win.ui;
 import win.ui.simpleWindow2;
 import win.ui.menu;
 import win.util.tray;
+import fsys.ini;
 import api;
 //import console;
 import web.json;
+
+var ini=fsys.ini("\stk.ini")
+sec = ini.getSection("Cost")
+if(!sec.cost){
+	//读写值
+	sec.cost = "sh000001,sz000652,sh600115,sh600337" 
+	//保存
+	sec.save()
+}
 
 var frmToolWindow = win.form( exmode="toolwindow" )
 /*DSG{{*/
@@ -73,13 +83,14 @@ mainForm.listview.onnotify = function(id,code,ptr){
 	}
 }
 
-var q = "sh000001,sz000652,sh600115,sh600337"
+var q = sec.cost
 mainForm.rData = {}
 mainForm.listview.enableDoubleBuffering();
 
 mainForm.getData = function(mainForm, q){
 	var thrdHandle = thread.create( 
 		function(mainForm, q){
+			import api
 			mainForm.rData = api.getRData(q)
 		}, mainForm, q
 	)
@@ -111,7 +122,7 @@ mainForm.getData = function(mainForm, q){
 }
 
 mainForm.refreshWin = function(mainForm, q){
-	var result = mainForm.getData(q)
+	var result = mainForm.getData(mainForm, q)
 	var items = {};
 	var keys = string.split(q, ",")
 	for(i=1; table.len(keys); 1){
