@@ -2,23 +2,14 @@ import win.ui;
 import win.ui.simpleWindow2;
 import win.ui.menu;
 import win.util.tray;
-import fsys.ini;
+import web.json;
+import config;
 import api;
 //import console;
-import web.json;
-
-var ini=fsys.ini("\stk.ini")
-sec = ini.getSection("Cost")
-if(!sec.cost){
-	//读写值
-	sec.cost = "sh000001,sz000652,sh600115,sh600337" 
-	//保存
-	sec.save()
-}
 
 var frmToolWindow = win.form( exmode="toolwindow" )
 /*DSG{{*/
-mainForm = win.form(text="STK";right=198;bottom=300;bgcolor=16777215;border="none";exmode="none";max=false;mode="popup";parent=frmToolWindow;title=false;topmost=1)
+mainForm = win.form(text="STK";left=0;top=0;right=198;bottom=300;bgcolor=16777215;border="none";exmode="none";max=false;mode="popup";parent=frmToolWindow;title=false;topmost=1)
 mainForm.add(
 bk={cls="bk";text="  STK";left=0;top=0;right=199;bottom=28;ah=1;align="left";bgcolor=12632256;dl=1;dr=1;dt=1;font=LOGFONT(h=-13;name='微软雅黑';weight=700);forecolor=12632256;z=2};
 button={cls="button";text="Button";left=18;top=215;right=158;bottom=261;bgcolor=255;border=1;z=1};
@@ -35,14 +26,7 @@ win.ui.simpleWindow3 标题栏使用分层窗口实现，并使用 orphanWindow 
 */
 win.ui.simpleWindow2(mainForm);//如果 mainForm 的最大化按钮设为隐藏(false)，则最大化按钮以及可拖动边框不会出现。
 
-//下面的代码实现用鼠标左键按住窗口时 —— 可拖动改变窗口位置
-mainForm.onMouseDown  = function(wParam,lParam){
-	mainForm.hitCaption()
-}
-
-mainForm.onClose = function(hwnd,message,wParam,lParam){
-    frmToolWindow.close()
-}
+mainForm.enableDpiScaling("init")
 
 //mainForm.listview.insertColumn("代码",-1,,0/*_LVCFMT_LEFT*/)
 mainForm.listview.insertColumn("简称",70,,2/*_LVCFMT_CENTER*/)
@@ -83,7 +67,7 @@ mainForm.listview.onnotify = function(id,code,ptr){
 	}
 }
 
-var q = sec.cost
+var q = config.q
 mainForm.rData = {}
 mainForm.listview.enableDoubleBuffering();
 
@@ -201,6 +185,18 @@ fadeHide = function(){
     win.quitMessage();
 }
 
+//下面的代码实现用鼠标左键按住窗口时 —— 可拖动改变窗口位置
+mainForm.onMouseDown  = function(wParam,lParam){
+	mainForm.hitCaption()
+}
+
+mainForm.onClose = function(hwnd,message,wParam,lParam){
+	var x,y = mainForm.getPos()
+	config.saveQ(q)
+	config.savePos(x, y)
+    frmToolWindow.close()
+}
+
 mainForm.popmenu = win.ui.popmenu(mainForm);//创建弹出菜单
 
 mainForm.popmenu.add("隐藏",function(id){
@@ -216,8 +212,6 @@ mainForm.popmenu.add("隐藏",function(id){
 });
 
 mainForm.isTransparent = false
-//mainForm.transparent(100,16777215);
-//mainForm.transparent(true);
 mainForm.popmenu.add("窗口透明",function(id){
     if(mainForm.isTransparent){
         mainForm.transparent(false);
@@ -237,6 +231,7 @@ tray = win.util.tray(mainForm) //创建托盘图标
 tray.message = 0x400+9981/*_WM_TRAYMESSAGE*/
 tray.tip = "托盘提示" //设置鼠标提示
 
+win.setPos(mainForm.hwnd, config.x+17, config.y+17) // 不知道为什么，设定的位置总会偏差17个像素，难道是因为缩放？
 mainForm.show();
 mainForm.startThread(mainForm, q)
 return win.loopMessage();
