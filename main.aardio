@@ -2,6 +2,7 @@ import win.ui;
 import win.ui.simpleWindow2;
 import win.ui.menu;
 import win.util.tray;
+import win.timer
 import web.json;
 import key.hotkey; 
 import config;
@@ -105,17 +106,13 @@ mainForm.refreshWin = function(mainForm, q){
 	mainForm.listview.replaceItems(items)
 }
 
-mainForm.startThread = function(mainForm, q){
+var refreshWinTimer = win.timer(mainForm, 5000);
+refreshWinTimer.onTimer = function(hwnd, msg, id, tick){
 	try {
     	thread.invoke(mainForm.refreshWin, mainForm, q)
-        thread.invoke(
-        	function(mainForm, q){
-        	    sleep(5000); 
-        		mainForm.startThread(mainForm, q)
-			}, mainForm, q
-		)
     } catch(e){}
 }
+refreshWinTimer.enable()
 
 mainForm.button.oncommand = function(id, event){
 	mainForm.refreshWin(mainForm, q)
@@ -220,18 +217,25 @@ tray.tip = "托盘提示" //设置鼠标提示
 
 //批量加载热键配置表
 var superHotkey = key.hotkey(mainForm) //创建超级热键,必须用于窗口程序中
-superHotkey.loadTable({
-	[config.w1] = function(hFocus){  
-		winHidden()
-	}
-	
-	[config.w2] = function(hFocus){  
-		winHidden()
-	}
-})
+setSuperHotkey = function(){
+	superHotkey.loadTable({
+		[config.w1] = function(hFocus){  
+			winHidden()
+		}
+		
+		[config.w2] = function(hFocus){  
+			winHidden()
+		}
+	})
+}
+
+setSuperHotkey()
+var hotkeyTimer = win.timer(mainForm, 5000);
+hotkeyTimer.onTimer = function(hwnd, msg, id, tick){ setSuperHotkey() }
+hotkeyTimer.enable()
 
 win.setPos(mainForm.hwnd, config.x+17, config.y+17) // 不知道为什么，设定的位置总会偏差17个像素，难道是因为缩放？
 mainForm.show()
-mainForm.startThread(mainForm, q)
+thread.invoke(mainForm.refreshWin, mainForm, q)
 
 return win.loopMessage()
