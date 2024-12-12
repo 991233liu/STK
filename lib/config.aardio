@@ -4,6 +4,14 @@ import console;
 
 var ini=fsys.ini("\stk.ini")
 
+var hotkeys = ini.getSection("HotKeys")
+if(!hotkeys.x){
+	//初始化
+	hotkeys.w1 = "Ctrl+Alt+Z"
+	hotkeys.w2 = "Alt+Ctrl+Z" 
+	hotkeys.save()
+}
+
 var stat = ini.getSection("WinStat")
 if(!stat.x){
 	//初始化
@@ -28,6 +36,8 @@ namespace config {
 	q = cost.cost
 	x = stat.x
 	y = stat.y
+	w1 = hotkeys.w1
+	w2 = hotkeys.w2
 	
 	saveQ = function(q){
 		cost.cost = q
