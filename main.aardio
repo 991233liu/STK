@@ -49,7 +49,7 @@ mainForm.listview.onnotify = function(id,code,ptr){
 		}
 		else{ 
 			//注意这里 iSubItem 的索引自0开始( 其他函数通常自1开始 )
-			var itemObject = mainForm.listview.getItem(lvcd.nmcd.dwItemSpec + 1, 4)
+			var itemObject = mainForm.listview.getItem(lvcd.nmcd.dwItemSpec + 1, 3)
 			var textClr = gdi.RGB(255,0,0) 
 			if(itemObject) {
 				if(string.startWith(itemObject.text, "-", true)) 
@@ -57,7 +57,7 @@ mainForm.listview.onnotify = function(id,code,ptr){
 				elseif(string.startWith(itemObject.text, "0.00%", true))
 					textClr = gdi.RGB(0,0,0)
 			}
-			lvcd.clrText = lvcd.iSubItem > 1 ? textClr : gdi.RGB(0,0,0)
+			lvcd.clrText = lvcd.iSubItem > 0 ? textClr : gdi.RGB(0,0,0)
 			//lvcd.uAlign = lvcd.iSubItem > 1 ? 1 : 2
 			lvcd.clrTextBk = gdi.RGB(255,255,255)
 			lvcd.update()
