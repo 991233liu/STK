@@ -19,8 +19,8 @@ if(!cost.cost){
 	cost.save()
 }
 
-::GetSystemMetrics := ::User32.api("GetSystemMetrics","int(int)") ;
-var Screenw, Screenh = ::GetSystemMetrics(0x0/*_SM_CXSCREEN*/), ::GetSystemMetrics(0x1/*_SM_CYSCREEN*/ ) ;
+::GetSystemMetrics := ::User32.api("GetSystemMetrics","int(int)")
+var Screenw, Screenh = ::GetSystemMetrics(0x0/*_SM_CXSCREEN*/), ::GetSystemMetrics(0x1/*_SM_CYSCREEN*/ )
 if(tonumber(stat.x) > tonumber(Screenw)) stat.x = tonumber(Screenw)-200
 if(tonumber(stat.y) > tonumber(Screenh)) stat.y = tonumber(Screenh)-200
 
