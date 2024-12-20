@@ -13,9 +13,9 @@ var frmToolWindow = win.form( exmode="toolwindow" )
 /*DSG{{*/
 mainForm = win.form(text="STK";left=0;top=0;right=198;bottom=300;bgcolor=16777215;border="none";exmode="none";max=false;mode="popup";parent=frmToolWindow;title=false;topmost=1)
 mainForm.add(
-bk={cls="bk";text="  STK";left=0;top=0;right=199;bottom=28;ah=1;align="left";bgcolor=12632256;dl=1;dr=1;dt=1;font=LOGFONT(h=-13;name='微软雅黑';weight=700);forecolor=12632256;z=2};
-button={cls="button";text="Button";left=14;top=253;right=79;bottom=287;bgcolor=255;border=1;z=1};
-listview={cls="listview";left=1;top=30;right=199;bottom=250;asel=false;bgcolor=16777215;font=LOGFONT(h=-13;name='微软雅黑';weight=900);gridLines=1;msel=false;z=3}
+bk={cls="bk";text="  STK";left=0;top=0;right=199;bottom=28;ah=1;align="left";bgcolor=12632256;dl=1;dr=1;dt=1;font=LOGFONT(h=-13;name='微软雅黑';weight=700);forecolor=12632256;z=1};
+button={cls="button";text="Button";left=14;top=253;right=79;bottom=287;bgcolor=255;border=1;hide=1;z=3};
+listview={cls="listview";left=1;top=30;right=199;bottom=301;asel=false;bgcolor=16777215;font=LOGFONT(h=-13;name='微软雅黑';weight=900);gridLines=1;msel=false;z=2}
 )
 /*}}*/
 
