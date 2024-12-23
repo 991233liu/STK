@@ -213,7 +213,7 @@ mainForm.popmenu.add('退出', function(id){ mainForm.close() })
 
 tray = win.util.tray(mainForm) //创建托盘图标
 tray.message = 0x400+9981/*_WM_TRAYMESSAGE*/
-tray.tip = "托盘提示" //设置鼠标提示
+tray.tip = "STK小智慧" //设置鼠标提示
 
 //批量加载热键配置表
 var superHotkey = key.hotkey(mainForm) //创建超级热键,必须用于窗口程序中
